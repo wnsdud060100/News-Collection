@@ -1,14 +1,32 @@
 "use client";
 
-import { useClerk } from "@clerk/nextjs";
+import { useAuth, useClerk } from "@clerk/nextjs";
+import { useRouter } from "next/navigation";
 import { useEffect } from "react";
+
+// 서버가 계속 비로그인으로 보면 refresh가 무한 반복되므로 페이지 로드당 한 번만 한다
+let refreshed = false;
 
 export default function SignInGate() {
   const { openSignIn } = useClerk();
+  const { isLoaded, isSignedIn } = useAuth();
 
+  const router = useRouter();
+
+  // 세션 확인이 끝나기 전이나 이미 로그인된 상태에서는 모달을 열지 않는다
   useEffect(() => {
-    openSignIn();
-  }, [openSignIn]);
+    if (isLoaded && !isSignedIn) openSignIn();
+  }, [isLoaded, isSignedIn, openSignIn]);
+
+  // <Show>는 서버에서 렌더되므로, 클라이언트에서 로그인이 끝나면 서버 트리를 새로 받아야 한다
+  useEffect(() => {
+    if (isLoaded && isSignedIn && !refreshed) {
+      refreshed = true;
+      router.refresh();
+    }
+  }, [isLoaded, isSignedIn, router]);
+
+  if (isSignedIn) return null;
 
   return (
     <main className="flex flex-1 flex-col items-center justify-center gap-4 p-8 text-center">
