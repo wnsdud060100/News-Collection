@@ -26,7 +26,7 @@ No test runner is configured yet.
 
 ## Product (PRD.md)
 
-News summary card app. On button click only (no scheduler), fetch RSS feeds, summarize + categorize new articles with the Claude API, store them, and show category-filtered cards. Users can save cards to their own Notion.
+News summary card app. On button click only (no scheduler), fetch RSS feeds, summarize new articles from the original article body with the Gemini API, categorize them by source feed (no AI), store them, and show category-filtered cards. Users can save cards to their own Notion.
 
 **Feeds:**
 - Hankyung economy — `https://www.hankyung.com/feed/economy`
@@ -35,16 +35,16 @@ News summary card app. On button click only (no scheduler), fetch RSS feeds, sum
 
 RSS field structure (summary field, encoding, date format) is unverified — inspect each feed before writing the parser.
 
-**Out of scope:** automatic scheduled fetch, multiple categories per article, per-user categories / admin roles, full article body storage or origin crawling.
+**Out of scope:** automatic scheduled fetch, multiple categories per article, per-user categories / admin roles, full article body storage (the body is fetched transiently from the origin page only to generate the summary; never stored).
 
 ## Stack
 
-Clerk (auth) · Neon Postgres + Drizzle ORM · Claude API · Notion MCP server with per-user OAuth.
+Clerk (auth) · Neon Postgres + Drizzle ORM · Gemini API (summaries) · Notion MCP server with per-user OAuth.
 
 ## Behavior rules
 
 - **Auth:** every page and API route requires Clerk login (unauthenticated → sign-in); check auth in every API route. News and categories are shared by all users; only Notion connections are per-user.
-- **Fetch ('뉴스 가져오기'):** collect all 3 feeds, skip articles whose `link` already exists, send only new ones to Claude (batched, several articles per request). One feed failing must not stop the others; report failed feeds in the UI. Show loading state and the new-article count.
+- **Fetch ('뉴스 가져오기'):** collect all 3 feeds (last 24h only), skip articles whose `link` already exists, save new ones with `summary = null`. Then summarize pending articles in small batches (fetch origin page → extract body → Gemini 3-line summary); failures stay `null` and are retried next run. One feed failing must not stop the others; report failed feeds in the UI. Show loading state and the new-article count.
 - **Classification:** based on current category names + descriptions. One category per article. No match, nonexistent category in the Claude response, or unparseable response → `기타`.
 - **Categories:** default set 경제, IT, 화장품, 기타 (seeded). Add/edit(name, description)/delete allowed by any logged-in user. `기타` (`isDefault`) cannot be deleted. Deleting a category moves its articles to `기타`. Category edits never auto-reclassify; the manual '재분류' button reclassifies existing articles against the current categories.
 - **Card:** title, source, published date, summary, category badge, origin link, 'Notion 저장' button (shows '저장됨' if already saved by this user). Top tabs: '전체' + each category.

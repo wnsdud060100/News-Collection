@@ -1,6 +1,7 @@
 import { asc, count, desc, eq, sql } from "drizzle-orm";
 import { db } from "@/db";
 import { articles, categories } from "@/db/schema";
+import { FEEDS } from "@/lib/rss/feeds";
 import type { ParsedItem } from "@/lib/rss/parse";
 
 const PAGE_LIMIT = 60;
@@ -74,24 +75,33 @@ export async function getLatestArticles(categoryId?: number, page = 1) {
   return { items, total, totalPages, currentPage };
 }
 
+// 피드(출처)별 카테고리 이름. 대응하는 카테고리가 없으면 기본 카테고리('기타')를 쓴다.
+const CATEGORY_BY_SOURCE = new Map(FEEDS.map((f) => [f.source, f.category]));
+
 // 수집한 기사를 저장한다. link가 이미 있으면 건너뛰고, 새로 저장된 건수를 반환한다.
-// 카테고리 분류는 별도 단계에서 하므로 일단 기본 카테고리('기타')로 넣는다.
+// 카테고리는 AI 없이, 기사를 가져온 피드에 따라 정한다.
 export async function saveNewArticles(items: ParsedItem[]): Promise<number> {
   const unique = [...new Map(items.map((i) => [i.link, i])).values()];
   if (unique.length === 0) return 0;
 
-  const [fallback] = await db
-    .select({ id: categories.id })
-    .from(categories)
-    .where(eq(categories.isDefault, true))
-    .limit(1);
+  const allCategories = await db
+    .select({ id: categories.id, name: categories.name, isDefault: categories.isDefault })
+    .from(categories);
+  const fallback = allCategories.find((c) => c.isDefault);
   if (!fallback) {
     throw new Error("기본 카테고리(기타)가 없습니다. npm run db:seed를 실행하세요.");
   }
+  const idByName = new Map(allCategories.map((c) => [c.name, c.id]));
 
   const inserted = await db
     .insert(articles)
-    .values(unique.map((i) => ({ ...i, categoryId: fallback.id })))
+    .values(
+      unique.map((i) => ({
+        ...i,
+        categoryId:
+          idByName.get(CATEGORY_BY_SOURCE.get(i.source) ?? "") ?? fallback.id,
+      })),
+    )
     .onConflictDoNothing({ target: articles.link })
     .returning({ id: articles.id });
 
