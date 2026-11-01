@@ -30,7 +30,7 @@ export default function SignInGate() {
 
   return (
     <main className="flex flex-1 flex-col items-center justify-center gap-4 p-8 text-center">
-      <h1 className="text-2xl font-semibold">뉴스 요약 카드</h1>
+      <h1 className="text-2xl font-semibold">News Collection</h1>
       <p className="text-zinc-600 dark:text-zinc-400">
         서비스를 이용하려면 로그인해 주세요.
       </p>

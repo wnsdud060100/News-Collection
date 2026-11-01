@@ -3,6 +3,7 @@ import Link from "next/link";
 type CategoryTabsProps = {
   categories: { id: number; name: string }[];
   activeId?: number;
+  basePath?: string;
 };
 
 function tabClass(active: boolean) {
@@ -13,13 +14,17 @@ function tabClass(active: boolean) {
   }`;
 }
 
-export default function CategoryTabs({ categories, activeId }: CategoryTabsProps) {
+export default function CategoryTabs({
+  categories,
+  activeId,
+  basePath = "/",
+}: CategoryTabsProps) {
   return (
     <nav aria-label="카테고리" className="-mx-4 overflow-x-auto px-4 pb-1">
       <ul className="flex gap-2">
         <li>
           <Link
-            href="/"
+            href={basePath}
             aria-current={activeId === undefined ? "page" : undefined}
             className={tabClass(activeId === undefined)}
           >
@@ -29,7 +34,7 @@ export default function CategoryTabs({ categories, activeId }: CategoryTabsProps
         {categories.map((c) => (
           <li key={c.id}>
             <Link
-              href={`/?category=${c.id}`}
+              href={`${basePath}?category=${c.id}`}
               aria-current={activeId === c.id ? "page" : undefined}
               className={tabClass(activeId === c.id)}
             >
