@@ -39,7 +39,7 @@ export default function NewsCard({
         {title}
       </h2>
 
-      <p className="flex-1 text-sm leading-relaxed text-slate-600 dark:text-slate-300">
+      <p className="flex-1 text-sm leading-relaxed whitespace-pre-line text-slate-600 dark:text-slate-300">
         {summary ?? "아직 요약이 없어요."}
       </p>
 

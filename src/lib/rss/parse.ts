@@ -5,11 +5,8 @@ export type ParsedItem = {
   source: string;
   title: string;
   link: string;
-  summary: string | null;
   publishedAt: Date | null;
 };
-
-const SUMMARY_MAX = 300;
 
 const parser = new XMLParser({
   ignoreAttributes: true,
@@ -60,12 +57,10 @@ export function parseFeed(xml: string, feed: FeedConfig): ParsedItem[] {
     const link = text(item.link);
     if (!title || !link) continue;
 
-    const description = stripHtml(text(item.description));
     result.push({
       source: feed.source,
       title,
       link,
-      summary: description ? description.slice(0, SUMMARY_MAX) : null,
       publishedAt: parseDate(text(item.pubDate), feed.naiveDateOffset),
     });
   }
