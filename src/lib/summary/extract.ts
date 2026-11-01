@@ -11,7 +11,7 @@ const ALLOWED_HOSTS = new Set(FEEDS.map((f) => new URL(f.url).hostname));
 const BODY_SELECTORS = [
   "#articletxt", // 한국경제
   ".article-body",
-  "#article-view-content-div", // KBS
+  "#article-view-content-div", // thekbs (THE K BEAUTY SCIENCE)
   "[itemprop=articleBody]",
 ];
 
