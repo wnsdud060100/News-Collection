@@ -8,12 +8,12 @@ export type FeedConfig = {
 };
 
 export const FEEDS: FeedConfig[] = [
-  { source: "한국경제 경제", url: "https://www.hankyung.com/feed/economy", category: "경제" },
-  { source: "한국경제 IT", url: "https://www.hankyung.com/feed/it", category: "IT" },
+  { source: "한국경제 경제", url: "https://www.hankyung.com/feed/economy", category: "한국경제(경제)" },
+  { source: "한국경제 IT", url: "https://www.hankyung.com/feed/it", category: "한국경제(IT)" },
   {
     source: "thekbs", // THE K BEAUTY SCIENCE
     url: "https://www.thekbs.co.kr/rss/allArticle.xml",
-    category: "화장품",
+    category: "더케이뷰티사이언스(화장품)",
     naiveDateOffset: "+09:00",
   },
 ];
