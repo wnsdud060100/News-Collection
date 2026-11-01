@@ -2,7 +2,7 @@ type NewsCardProps = {
   title: string;
   source: string;
   link: string;
-  summary: string;
+  summary: string | null;
   publishedAt: Date | null;
   categoryName: string;
 };
@@ -40,7 +40,7 @@ export default function NewsCard({
       </h2>
 
       <p className="flex-1 text-sm leading-relaxed text-slate-600 dark:text-slate-300">
-        {summary}
+        {summary ?? "아직 요약이 없어요."}
       </p>
 
       <div className="flex items-center justify-between gap-3 border-t border-slate-100 pt-3 dark:border-slate-800">

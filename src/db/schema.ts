@@ -26,7 +26,7 @@ export const articles = pgTable(
     source: text("source").notNull(),
     title: text("title").notNull(),
     link: text("link").notNull().unique(),
-    summary: text("summary").notNull(),
+    summary: text("summary"),
     publishedAt: timestamp("published_at", { withTimezone: true }),
     categoryId: integer("category_id")
       .notNull()

@@ -8,6 +8,13 @@
       "when": 1793104288759,
       "tag": "0000_concerned_the_anarchist",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1793516389605,
+      "tag": "0001_equal_gideon",
+      "breakpoints": true
     }
   ]
 }

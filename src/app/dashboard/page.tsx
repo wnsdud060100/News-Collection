@@ -1,6 +1,8 @@
 import { Suspense } from "react";
 import CategoryTabs from "@/components/category-tabs";
+import FetchNewsButton from "@/components/fetch-news-button";
 import NewsCard from "@/components/news-card";
+import Pagination from "@/components/pagination";
 import { getCategories, getLatestArticles } from "@/lib/news";
 
 // 로그인 게이트(layout.tsx) 뒤에서만 렌더링되므로 instant 검증에서 제외
@@ -11,13 +13,16 @@ export default function DashboardPage({
 }: PageProps<"/dashboard">) {
   return (
     <main className="mx-auto flex w-full max-w-5xl flex-1 flex-col gap-6 px-4 pb-16">
-      <section>
-        <h1 className="text-2xl font-bold text-slate-900 sm:text-3xl dark:text-slate-50">
-          대시보드
-        </h1>
-        <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
-          가장 최근에 발행된 뉴스부터 보여드려요.
-        </p>
+      <section className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+        <div>
+          <h1 className="text-2xl font-bold text-slate-900 sm:text-3xl dark:text-slate-50">
+            대시보드
+          </h1>
+          <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
+            가장 최근에 발행된 뉴스부터 보여드려요.
+          </p>
+        </div>
+        <FetchNewsButton />
       </section>
 
       <Suspense fallback={<ListSkeleton />}>
@@ -30,11 +35,16 @@ export default function DashboardPage({
 async function Feed({
   searchParams,
 }: Pick<PageProps<"/dashboard">, "searchParams">) {
-  const { category } = await searchParams;
+  const { category, page } = await searchParams;
   const categories = await getCategories();
   // 존재하지 않는 카테고리 값이면 '전체'로 취급
   const activeId = categories.find((c) => String(c.id) === category)?.id;
-  const items = await getLatestArticles(activeId);
+  // page가 숫자가 아니거나 1 미만이면 1페이지로 취급 (범위 초과는 쿼리에서 보정)
+  const requestedPage = Math.max(1, Number.parseInt(String(page), 10) || 1);
+  const { items, totalPages, currentPage } = await getLatestArticles(
+    activeId,
+    requestedPage,
+  );
 
   return (
     <>
@@ -54,6 +64,12 @@ async function Feed({
           ))}
         </div>
       )}
+      <Pagination
+        currentPage={currentPage}
+        totalPages={totalPages}
+        basePath="/dashboard"
+        query={{ category: activeId === undefined ? undefined : String(activeId) }}
+      />
     </>
   );
 }
