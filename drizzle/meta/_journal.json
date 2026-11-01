@@ -15,6 +15,13 @@
       "when": 1793516389605,
       "tag": "0001_equal_gideon",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1793519906099,
+      "tag": "0002_strange_madelyne_pryor",
+      "breakpoints": true
     }
   ]
 }

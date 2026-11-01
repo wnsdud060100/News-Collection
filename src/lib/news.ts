@@ -10,7 +10,7 @@ export async function getCategories() {
   return db
     .select({ id: categories.id, name: categories.name })
     .from(categories)
-    .orderBy(asc(categories.isDefault), asc(categories.id));
+    .orderBy(asc(categories.id));
 }
 
 export async function getArticles(categoryId?: number) {
@@ -22,10 +22,8 @@ export async function getArticles(categoryId?: number) {
       link: articles.link,
       summary: articles.summary,
       publishedAt: articles.publishedAt,
-      categoryName: categories.name,
     })
     .from(articles)
-    .innerJoin(categories, eq(articles.categoryId, categories.id))
     .$dynamic();
 
   if (categoryId !== undefined) query.where(eq(articles.categoryId, categoryId));
@@ -59,10 +57,8 @@ export async function getLatestArticles(categoryId?: number, page = 1) {
       link: articles.link,
       summary: articles.summary,
       publishedAt: articles.publishedAt,
-      categoryName: categories.name,
     })
     .from(articles)
-    .innerJoin(categories, eq(articles.categoryId, categories.id))
     .where(where)
     .orderBy(
       sql`${articles.publishedAt} desc nulls last`,
@@ -75,7 +71,7 @@ export async function getLatestArticles(categoryId?: number, page = 1) {
   return { items, total, totalPages, currentPage };
 }
 
-// 피드(출처)별 카테고리 이름. 대응하는 카테고리가 없으면 기본 카테고리('기타')를 쓴다.
+// 피드(출처)별 카테고리 이름. 대응하는 카테고리가 DB에 없으면 카테고리 없음(null)으로 저장한다.
 const CATEGORY_BY_SOURCE = new Map(FEEDS.map((f) => [f.source, f.category]));
 
 // 수집한 기사를 저장한다. link가 이미 있으면 건너뛰고, 새로 저장된 건수를 반환한다.
@@ -85,12 +81,8 @@ export async function saveNewArticles(items: ParsedItem[]): Promise<number> {
   if (unique.length === 0) return 0;
 
   const allCategories = await db
-    .select({ id: categories.id, name: categories.name, isDefault: categories.isDefault })
+    .select({ id: categories.id, name: categories.name })
     .from(categories);
-  const fallback = allCategories.find((c) => c.isDefault);
-  if (!fallback) {
-    throw new Error("기본 카테고리(기타)가 없습니다. npm run db:seed를 실행하세요.");
-  }
   const idByName = new Map(allCategories.map((c) => [c.name, c.id]));
 
   const inserted = await db
@@ -98,8 +90,7 @@ export async function saveNewArticles(items: ParsedItem[]): Promise<number> {
     .values(
       unique.map((i) => ({
         ...i,
-        categoryId:
-          idByName.get(CATEGORY_BY_SOURCE.get(i.source) ?? "") ?? fallback.id,
+        categoryId: idByName.get(CATEGORY_BY_SOURCE.get(i.source) ?? "") ?? null,
       })),
     )
     .onConflictDoNothing({ target: articles.link })

@@ -45,15 +45,15 @@ Clerk (auth) · Neon Postgres + Drizzle ORM · Gemini API (summaries) · Notion 
 
 - **Auth:** every page and API route requires Clerk login (unauthenticated → sign-in); check auth in every API route. News and categories are shared by all users; only Notion connections are per-user.
 - **Fetch ('뉴스 가져오기'):** collect all 3 feeds (last 24h only), skip articles whose `link` already exists, save new ones with `summary = null`. Then summarize pending articles in small batches (fetch origin page → extract body → Gemini 3-line summary); failures stay `null` and are retried next run. One feed failing must not stop the others; report failed feeds in the UI. Show loading state and the new-article count.
-- **Classification:** no AI; category is fixed by source feed (한경 경제→`한국경제(경제)`, 한경 IT→`한국경제(IT)`, thekbs→`더케이뷰티사이언스(화장품)`), set when the article is saved. One category per article. If the mapped category doesn't exist in the DB → `기타`.
-- **Categories:** default set 한국경제(경제), 한국경제(IT), 더케이뷰티사이언스(화장품), 기타 (seeded). Add/edit(name, description)/delete allowed by any logged-in user. `기타` (`isDefault`) cannot be deleted. Deleting a category moves its articles to `기타`. Category edits never reclassify existing articles; user-added categories receive no articles (not in the feed mapping), and renaming a feed-mapped category sends new articles to `기타`.
-- **Card:** title, source, published date, summary, category badge, origin link, 'Notion 저장' button (shows '저장됨' if already saved by this user). Top tabs: '전체' + each category.
+- **Classification:** no AI; category is fixed by source feed (한경 경제→`한국경제(경제)`, 한경 IT→`한국경제(IT)`, thekbs→`더케이뷰티사이언스(화장품)`), set when the article is saved. One category per article. If the mapped category doesn't exist in the DB → saved with no category (`categoryId` null, visible only under '전체').
+- **Categories:** default set 한국경제(경제), 한국경제(IT), 더케이뷰티사이언스(화장품) (seeded). Add/edit(name, description)/delete allowed by any logged-in user. Deleting a category keeps its articles with no category (FK `on delete set null`). Category edits never reclassify existing articles; user-added categories receive no articles (not in the feed mapping), and renaming a feed-mapped category makes new articles save with no category.
+- **Card:** published date (top right), title, summary, origin link (no source or category badge on the card — categories are shown via the top tabs), 'Notion 저장' button (shows '저장됨' if already saved by this user). Top tabs: '전체' + each category.
 - **Notion save:** per-user OAuth connect; if not connected, the save button sends the user to the connect flow. Page creation goes through the Notion MCP server (title, summary, source, category, link, published date). Same user cannot save the same article twice. Show errors on failure and allow retry. Save target (page vs database) is undecided — decide at implementation.
 
 ## Data model (draft)
 
-- `categories`: id, name (unique), description, isDefault, createdAt
-- `articles`: id, source, title, link (unique), summary, publishedAt, categoryId (FK), fetchedAt
+- `categories`: id, name (unique), description, createdAt
+- `articles`: id, source, title, link (unique), summary, publishedAt, categoryId (FK, nullable), fetchedAt
 - `notion_connections`: clerkUserId (unique), access/refresh tokens (encrypted), expiry, target page id
 - `notion_saves`: clerkUserId, articleId, notionPageId, savedAt — unique(clerkUserId, articleId)
 
@@ -62,7 +62,7 @@ Clerk (auth) · Neon Postgres + Drizzle ORM · Gemini API (summaries) · Notion 
 - **Security:** API keys and tokens are server-only; Notion tokens stored encrypted.
 - **Cost:** only new articles go to Gemini; batch multiple articles per call; classification is free (no AI).
 - **Performance:** cap batch size for fetch/summarize, show progress, set route max execution time.
-- **Reliability:** isolate per-feed failures; fall back to `기타` when the mapped category is missing; failed summaries stay `null` and are retried.
+- **Reliability:** isolate per-feed failures; save with no category when the mapped category is missing; failed summaries stay `null` and are retried.
 
 ## Implementation order
 
@@ -80,7 +80,7 @@ The riskiest piece is Notion MCP per-user OAuth (auth flow, token refresh) — p
 - No page or API is reachable without login.
 - Running fetch twice in a row creates no duplicates and reflects all 3 feeds.
 - 한경 경제 → `한국경제(경제)`, 한경 IT → `한국경제(IT)`, thekbs → `더케이뷰티사이언스(화장품)`.
-- Deleting a category moves its articles to `기타`.
+- Deleting a category keeps its articles (no category, visible under '전체').
 - Summaries are generated from the article body (3 lines); failed ones are retried on the next run.
 - After connecting Notion, saving creates a real page and blocks duplicates.
 - Two different accounts save to their own separate Notions.

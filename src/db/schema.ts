@@ -1,5 +1,4 @@
 import {
-  boolean,
   index,
   integer,
   pgTable,
@@ -13,7 +12,6 @@ export const categories = pgTable("categories", {
   id: serial("id").primaryKey(),
   name: text("name").notNull().unique(),
   description: text("description").notNull().default(""),
-  isDefault: boolean("is_default").notNull().default(false),
   createdAt: timestamp("created_at", { withTimezone: true })
     .notNull()
     .defaultNow(),
@@ -28,9 +26,10 @@ export const articles = pgTable(
     link: text("link").notNull().unique(),
     summary: text("summary"),
     publishedAt: timestamp("published_at", { withTimezone: true }),
-    categoryId: integer("category_id")
-      .notNull()
-      .references(() => categories.id),
+    // 대응하는 카테고리가 없거나 카테고리가 삭제되면 null ('전체'에서만 보인다)
+    categoryId: integer("category_id").references(() => categories.id, {
+      onDelete: "set null",
+    }),
     fetchedAt: timestamp("fetched_at", { withTimezone: true })
       .notNull()
       .defaultNow(),
