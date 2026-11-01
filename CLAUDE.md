@@ -6,6 +6,10 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 Fresh `create-next-app` scaffold (Next.js 16.4.3, React 19, Tailwind 4, TypeScript, App Router, `src/` dir, alias `@/*` → `src/*`). No app code yet. `PRD.md` (Korean) is the source of truth; this file summarizes it. If they conflict, PRD.md wins.
 
+## UI guide
+
+`ui.md` (Korean) is the UI/styling guide (app name "News Collection", Tailwind CSS, colors, typography, component specs, dark mode). Read it before writing or changing any UI, and follow it for new components.
+
 ## Commands
 
 ```bash
