@@ -45,8 +45,8 @@ Clerk (auth) · Neon Postgres + Drizzle ORM · Gemini API (summaries) · Notion 
 
 - **Auth:** every page and API route requires Clerk login (unauthenticated → sign-in); check auth in every API route. News and categories are shared by all users; only Notion connections are per-user.
 - **Fetch ('뉴스 가져오기'):** collect all 3 feeds (last 24h only), skip articles whose `link` already exists, save new ones with `summary = null`. Then summarize pending articles in small batches (fetch origin page → extract body → Gemini 3-line summary); failures stay `null` and are retried next run. One feed failing must not stop the others; report failed feeds in the UI. Show loading state and the new-article count.
-- **Classification:** based on current category names + descriptions. One category per article. No match, nonexistent category in the Claude response, or unparseable response → `기타`.
-- **Categories:** default set 경제, IT, 화장품, 기타 (seeded). Add/edit(name, description)/delete allowed by any logged-in user. `기타` (`isDefault`) cannot be deleted. Deleting a category moves its articles to `기타`. Category edits never auto-reclassify; the manual '재분류' button reclassifies existing articles against the current categories.
+- **Classification:** no AI; category is fixed by source feed (한경 경제→`경제`, 한경 IT→`IT`, KBS→`화장품`), set when the article is saved. One category per article. If the mapped category doesn't exist in the DB → `기타`.
+- **Categories:** default set 경제, IT, 화장품, 기타 (seeded). Add/edit(name, description)/delete allowed by any logged-in user. `기타` (`isDefault`) cannot be deleted. Deleting a category moves its articles to `기타`. Category edits never reclassify existing articles; user-added categories receive no articles (not in the feed mapping), and renaming a feed-mapped category sends new articles to `기타`.
 - **Card:** title, source, published date, summary, category badge, origin link, 'Notion 저장' button (shows '저장됨' if already saved by this user). Top tabs: '전체' + each category.
 - **Notion save:** per-user OAuth connect; if not connected, the save button sends the user to the connect flow. Page creation goes through the Notion MCP server (title, summary, source, category, link, published date). Same user cannot save the same article twice. Show errors on failure and allow retry. Save target (page vs database) is undecided — decide at implementation.
 
@@ -60,17 +60,17 @@ Clerk (auth) · Neon Postgres + Drizzle ORM · Gemini API (summaries) · Notion 
 ## Non-functional requirements
 
 - **Security:** API keys and tokens are server-only; Notion tokens stored encrypted.
-- **Cost:** only new articles go to Claude; batch multiple articles per call; reclassify is manual only.
-- **Performance:** cap batch size for fetch/reclassify, show progress, set route max execution time.
-- **Reliability:** isolate per-feed failures; fall back to `기타` on Claude parse failure.
+- **Cost:** only new articles go to Gemini; batch multiple articles per call; classification is free (no AI).
+- **Performance:** cap batch size for fetch/summarize, show progress, set route max execution time.
+- **Reliability:** isolate per-feed failures; fall back to `기타` when the mapped category is missing; failed summaries stay `null` and are retried.
 
 ## Implementation order
 
 1. Next.js init, Clerk login + middleware
 2. Neon + Drizzle schema/migration, default category seed
-3. RSS fetch, Claude summarize/classify, '뉴스 가져오기' button
+3. RSS fetch, Gemini summarize, feed-based classify, '뉴스 가져오기' button
 4. Card list UI + category filter
-5. Category CRUD + reclassify button
+5. Category CRUD
 6. Notion OAuth, MCP save, card button
 
 The riskiest piece is Notion MCP per-user OAuth (auth flow, token refresh) — prototype it early.
@@ -79,7 +79,8 @@ The riskiest piece is Notion MCP per-user OAuth (auth flow, token refresh) — p
 
 - No page or API is reachable without login.
 - Running fetch twice in a row creates no duplicates and reflects all 3 feeds.
-- Cosmetics articles land in `화장품`; unrelated ones in `기타`.
-- After category add/edit/delete, reclassify reflects the changes.
+- 한경 경제 → `경제`, 한경 IT → `IT`, KBS → `화장품`.
+- Deleting a category moves its articles to `기타`.
+- Summaries are generated from the article body (3 lines); failed ones are retried on the next run.
 - After connecting Notion, saving creates a real page and blocks duplicates.
 - Two different accounts save to their own separate Notions.
