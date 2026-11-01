@@ -1,10 +1,8 @@
 type NewsCardProps = {
   title: string;
-  source: string;
   link: string;
   summary: string | null;
   publishedAt: Date | null;
-  categoryName: string;
 };
 
 const dateFormat = new Intl.DateTimeFormat("ko-KR", {
@@ -18,22 +16,18 @@ const dateFormat = new Intl.DateTimeFormat("ko-KR", {
 
 export default function NewsCard({
   title,
-  source,
   link,
   summary,
   publishedAt,
-  categoryName,
 }: NewsCardProps) {
   return (
     <article className="flex flex-col gap-3 rounded-2xl border border-blue-100 bg-white p-5 shadow-sm transition hover:border-blue-300 hover:shadow-md dark:border-slate-800 dark:bg-slate-900 dark:hover:border-blue-500/50">
-      <div className="flex items-center justify-between gap-3">
-        <span className="rounded-full bg-blue-50 px-2.5 py-1 text-xs font-semibold text-blue-700 dark:bg-blue-500/15 dark:text-blue-300">
-          {categoryName}
-        </span>
-        <span className="truncate text-xs text-slate-500 dark:text-slate-400">
-          {source}
-        </span>
-      </div>
+      <time
+        dateTime={publishedAt?.toISOString()}
+        className="self-end text-xs text-slate-500 dark:text-slate-400"
+      >
+        {publishedAt ? dateFormat.format(publishedAt) : "날짜 정보 없음"}
+      </time>
 
       <h2 className="text-lg leading-snug font-bold text-slate-900 dark:text-slate-50">
         {title}
@@ -43,13 +37,7 @@ export default function NewsCard({
         {summary ?? "아직 요약이 없어요."}
       </p>
 
-      <div className="flex items-center justify-between gap-3 border-t border-slate-100 pt-3 dark:border-slate-800">
-        <time
-          dateTime={publishedAt?.toISOString()}
-          className="text-xs text-slate-500 dark:text-slate-400"
-        >
-          {publishedAt ? dateFormat.format(publishedAt) : "날짜 정보 없음"}
-        </time>
+      <div className="flex items-center justify-end gap-3 border-t border-slate-100 pt-3 dark:border-slate-800">
         <a
           href={link}
           target="_blank"
