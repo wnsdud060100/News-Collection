@@ -1,6 +1,6 @@
-import { asc, count, desc, eq, sql } from "drizzle-orm";
+import { and, asc, count, desc, eq, inArray, sql } from "drizzle-orm";
 import { db } from "@/db";
-import { articles, categories } from "@/db/schema";
+import { articles, categories, notionSaves } from "@/db/schema";
 import { FEEDS } from "@/lib/rss/feeds";
 import type { ParsedItem } from "@/lib/rss/parse";
 
@@ -31,6 +31,24 @@ export async function getArticles(categoryId?: number) {
   return query
     .orderBy(desc(articles.publishedAt), desc(articles.id))
     .limit(PAGE_LIMIT);
+}
+
+// 해당 사용자가 이미 Notion에 저장한 기사 id 집합
+export async function getSavedArticleIds(
+  userId: string | null,
+  articleIds: number[],
+): Promise<Set<number>> {
+  if (!userId || articleIds.length === 0) return new Set();
+  const rows = await db
+    .select({ articleId: notionSaves.articleId })
+    .from(notionSaves)
+    .where(
+      and(
+        eq(notionSaves.clerkUserId, userId),
+        inArray(notionSaves.articleId, articleIds),
+      ),
+    );
+  return new Set(rows.map((r) => r.articleId));
 }
 
 export const DASHBOARD_PAGE_SIZE = 9;

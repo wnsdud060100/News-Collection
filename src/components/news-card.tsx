@@ -1,4 +1,8 @@
+import SaveNewsButton from "@/components/save-news-button";
+
 type NewsCardProps = {
+  id: number;
+  saved: boolean;
   title: string;
   link: string;
   summary: string | null;
@@ -15,6 +19,8 @@ const dateFormat = new Intl.DateTimeFormat("ko-KR", {
 });
 
 export default function NewsCard({
+  id,
+  saved,
   title,
   link,
   summary,
@@ -46,6 +52,7 @@ export default function NewsCard({
         >
           원문 보기 →
         </a>
+        <SaveNewsButton articleId={id} initialSaved={saved} />
       </div>
     </article>
   );

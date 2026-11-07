@@ -1,9 +1,10 @@
+import { auth } from "@clerk/nextjs/server";
 import { Suspense } from "react";
 import CategoryTabs from "@/components/category-tabs";
 import FetchNewsButton from "@/components/fetch-news-button";
 import NewsCard from "@/components/news-card";
 import Pagination from "@/components/pagination";
-import { getCategories, getLatestArticles } from "@/lib/news";
+import { getCategories, getSavedArticleIds, getLatestArticles } from "@/lib/news";
 
 // 로그인 게이트(layout.tsx) 뒤에서만 렌더링되므로 instant 검증에서 제외
 export const instant = false;
@@ -45,6 +46,8 @@ async function Feed({
     activeId,
     requestedPage,
   );
+  const { userId } = await auth();
+  const savedIds = await getSavedArticleIds(userId, items.map((i) => i.id));
 
   return (
     <>
@@ -60,7 +63,7 @@ async function Feed({
       ) : (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {items.map((item) => (
-            <NewsCard key={item.id} {...item} />
+            <NewsCard key={item.id} {...item} saved={savedIds.has(item.id)} />
           ))}
         </div>
       )}
