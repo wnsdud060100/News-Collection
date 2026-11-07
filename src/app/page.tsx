@@ -1,7 +1,8 @@
+import { auth } from "@clerk/nextjs/server";
 import { Suspense } from "react";
 import CategoryTabs from "@/components/category-tabs";
 import NewsCard from "@/components/news-card";
-import { getArticles, getCategories } from "@/lib/news";
+import { getArticles, getCategories, getSavedArticleIds } from "@/lib/news";
 
 // 로그인 게이트(layout.tsx) 뒤에서만 렌더링되므로 instant 검증에서 제외
 export const instant = false;
@@ -31,6 +32,8 @@ async function Feed({ searchParams }: Pick<PageProps<"/">, "searchParams">) {
   // 존재하지 않는 카테고리 값이면 '전체'로 취급
   const activeId = categories.find((c) => String(c.id) === category)?.id;
   const items = await getArticles(activeId);
+  const { userId } = await auth();
+  const savedIds = await getSavedArticleIds(userId, items.map((i) => i.id));
 
   return (
     <>
@@ -43,7 +46,7 @@ async function Feed({ searchParams }: Pick<PageProps<"/">, "searchParams">) {
       ) : (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {items.map((item) => (
-            <NewsCard key={item.id} {...item} />
+            <NewsCard key={item.id} {...item} saved={savedIds.has(item.id)} />
           ))}
         </div>
       )}
