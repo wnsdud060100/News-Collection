@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
-import { ClerkProvider, Show, UserButton } from "@clerk/nextjs";
+import { ClerkProvider, Show } from "@clerk/nextjs";
 import { Suspense } from "react";
 import SignInGate from "@/components/sign-in-gate";
 import "./globals.css";
@@ -30,12 +30,6 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         <body className="min-h-full flex flex-col">
           <Suspense fallback={null}>
             <Show when="signed-in">
-              <header className="mx-auto flex w-full max-w-5xl items-center justify-between px-4 py-5">
-                <span className="text-lg font-extrabold tracking-tight text-blue-700 dark:text-blue-400">
-                  News Collection
-                </span>
-                <UserButton />
-              </header>
               {children}
             </Show>
             <Show when="signed-out">

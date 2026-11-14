@@ -31,7 +31,7 @@ export default function CategoryTabs({
   keyword,
 }: CategoryTabsProps) {
   return (
-    <nav aria-label="카테고리" className="-mx-4 overflow-x-auto px-4 pb-1 sm:mx-0 sm:min-w-0 sm:flex-1 sm:px-0">
+    <nav aria-label="카테고리" className="-mx-4 -my-2 overflow-x-auto px-4 py-2 sm:-mx-2 sm:min-w-0 sm:flex-1 sm:px-2">
       <ul className="flex gap-2">
         <li>
           <Link

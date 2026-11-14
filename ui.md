@@ -65,9 +65,9 @@
 ## 5. 컴포넌트
 
 ### 5.1 헤더
-- 좌측 로고 텍스트 "News Collection": `text-lg font-extrabold tracking-tight text-blue-700 dark:text-blue-400`
-- 우측 Clerk `UserButton`
-- 레이아웃: `flex items-center justify-between py-5`
+- 좌측 로고 텍스트 "News Collection": `text-3xl sm:text-4xl leading-none font-black tracking-tighter text-blue-700 dark:text-blue-400` (`components/page-header.tsx`)
+- 우측 Clerk `UserButton`, 그 아래 줄에 페이지별 액션(대시보드: 뉴스 가져오기 버튼)
+- 레이아웃: `flex items-center justify-between gap-4 pt-5` (로고는 우측 두 줄 높이에 맞춰 세로 중앙)
 
 ### 5.2 카테고리 탭 (`components/category-tabs.tsx`)
 - 첫 항목은 항상 **전체**, 이어서 DB 카테고리 순서대로 나열.

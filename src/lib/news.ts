@@ -65,7 +65,7 @@ export async function getSavedArticleIds(
 
 export const DASHBOARD_PAGE_SIZE = 9;
 
-// 대시보드용: 발행일 최신순(발행일이 없으면 맨 뒤), 같으면 수집 시각 최신순.
+// 페이지네이션 목록용: 발행일 최신순(발행일이 없으면 맨 뒤), 같으면 수집 시각 최신순.
 // 요청한 페이지가 범위를 벗어나면 가장 가까운 유효 페이지로 보정해 돌려준다.
 export async function getLatestArticles(
   categoryId?: number,

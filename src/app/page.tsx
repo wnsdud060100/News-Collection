@@ -2,6 +2,7 @@ import { auth } from "@clerk/nextjs/server";
 import { Suspense } from "react";
 import CategoryTabs from "@/components/category-tabs";
 import NewsCard from "@/components/news-card";
+import PageHeader from "@/components/page-header";
 import SearchForm from "@/components/search-form";
 import { getArticles, getCategories, getSavedArticleIds } from "@/lib/news";
 
@@ -11,6 +12,7 @@ export const instant = false;
 export default function Home({ searchParams }: PageProps<"/">) {
   return (
     <main className="mx-auto flex w-full max-w-5xl flex-1 flex-col gap-6 px-4 pb-16">
+      <PageHeader />
       <section>
         <h1 className="text-2xl font-bold text-slate-900 sm:text-3xl dark:text-slate-50">
           오늘의 뉴스

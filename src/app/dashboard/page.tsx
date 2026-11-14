@@ -3,6 +3,7 @@ import { Suspense } from "react";
 import CategoryTabs from "@/components/category-tabs";
 import FetchNewsButton from "@/components/fetch-news-button";
 import NewsCard from "@/components/news-card";
+import PageHeader from "@/components/page-header";
 import Pagination from "@/components/pagination";
 import SearchForm from "@/components/search-form";
 import { getCategories, getSavedArticleIds, getLatestArticles } from "@/lib/news";
@@ -15,17 +16,10 @@ export default function DashboardPage({
 }: PageProps<"/dashboard">) {
   return (
     <main className="mx-auto flex w-full max-w-5xl flex-1 flex-col gap-6 px-4 pb-16">
-      <section className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-slate-900 sm:text-3xl dark:text-slate-50">
-            대시보드
-          </h1>
-          <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
-            가장 최근에 발행된 뉴스부터 보여드려요.
-          </p>
-        </div>
+      <h1 className="sr-only">최신 뉴스</h1>
+      <PageHeader>
         <FetchNewsButton />
-      </section>
+      </PageHeader>
 
       <Suspense fallback={<ListSkeleton />}>
         <Feed searchParams={searchParams} />
