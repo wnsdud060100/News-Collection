@@ -4,6 +4,8 @@ type CategoryTabsProps = {
   categories: { id: number; name: string }[];
   activeId?: number;
   basePath?: string;
+  // 탭 이동 시 유지할 검색어
+  keyword?: string;
 };
 
 function tabClass(active: boolean) {
@@ -14,17 +16,26 @@ function tabClass(active: boolean) {
   }`;
 }
 
+function tabHref(basePath: string, categoryId?: number, keyword?: string) {
+  const params = new URLSearchParams();
+  if (categoryId !== undefined) params.set("category", String(categoryId));
+  if (keyword) params.set("q", keyword);
+  const qs = params.toString();
+  return qs ? `${basePath}?${qs}` : basePath;
+}
+
 export default function CategoryTabs({
   categories,
   activeId,
   basePath = "/",
+  keyword,
 }: CategoryTabsProps) {
   return (
-    <nav aria-label="카테고리" className="-mx-4 overflow-x-auto px-4 pb-1">
+    <nav aria-label="카테고리" className="-mx-4 overflow-x-auto px-4 pb-1 sm:mx-0 sm:min-w-0 sm:flex-1 sm:px-0">
       <ul className="flex gap-2">
         <li>
           <Link
-            href={basePath}
+            href={tabHref(basePath, undefined, keyword)}
             aria-current={activeId === undefined ? "page" : undefined}
             className={tabClass(activeId === undefined)}
           >
@@ -34,7 +45,7 @@ export default function CategoryTabs({
         {categories.map((c) => (
           <li key={c.id}>
             <Link
-              href={`${basePath}?category=${c.id}`}
+              href={tabHref(basePath, c.id, keyword)}
               aria-current={activeId === c.id ? "page" : undefined}
               className={tabClass(activeId === c.id)}
             >

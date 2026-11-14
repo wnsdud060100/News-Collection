@@ -2,6 +2,7 @@ import { auth } from "@clerk/nextjs/server";
 import { Suspense } from "react";
 import CategoryTabs from "@/components/category-tabs";
 import NewsCard from "@/components/news-card";
+import SearchForm from "@/components/search-form";
 import { getArticles, getCategories, getSavedArticleIds } from "@/lib/news";
 
 // 로그인 게이트(layout.tsx) 뒤에서만 렌더링되므로 instant 검증에서 제외
@@ -27,21 +28,25 @@ export default function Home({ searchParams }: PageProps<"/">) {
 }
 
 async function Feed({ searchParams }: Pick<PageProps<"/">, "searchParams">) {
-  const { category } = await searchParams;
+  const { category, q } = await searchParams;
+  const keyword = (Array.isArray(q) ? q[0] : q)?.trim().slice(0, 100) || undefined;
   const categories = await getCategories();
   // 존재하지 않는 카테고리 값이면 '전체'로 취급
   const activeId = categories.find((c) => String(c.id) === category)?.id;
-  const items = await getArticles(activeId);
+  const items = await getArticles(activeId, keyword);
   const { userId } = await auth();
   const savedIds = await getSavedArticleIds(userId, items.map((i) => i.id));
 
   return (
     <>
-      <CategoryTabs categories={categories} activeId={activeId} />
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-4">
+        <CategoryTabs categories={categories} activeId={activeId} keyword={keyword} />
+        <SearchForm basePath="/" query={keyword} categoryId={activeId} />
+      </div>
 
       {items.length === 0 ? (
         <p className="rounded-2xl border border-dashed border-blue-200 bg-blue-50/50 py-16 text-center text-sm text-slate-500 dark:border-slate-700 dark:bg-slate-900/50 dark:text-slate-400">
-          아직 표시할 뉴스가 없어요.
+          {keyword ? `'${keyword}'에 대한 검색 결과가 없어요.` : "아직 표시할 뉴스가 없어요."}
         </p>
       ) : (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">

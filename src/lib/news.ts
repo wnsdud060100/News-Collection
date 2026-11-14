@@ -1,10 +1,17 @@
-import { and, asc, count, desc, eq, inArray, sql } from "drizzle-orm";
+import { and, asc, count, desc, eq, ilike, inArray, or, sql } from "drizzle-orm";
 import { db } from "@/db";
 import { articles, categories, notionSaves } from "@/db/schema";
 import { FEEDS } from "@/lib/rss/feeds";
 import type { ParsedItem } from "@/lib/rss/parse";
 
 const PAGE_LIMIT = 60;
+
+// 제목·요약에 키워드가 포함된 기사 조건(대소문자 무시). LIKE 와일드카드는 이스케이프한다.
+function keywordFilter(keyword?: string) {
+  if (!keyword) return undefined;
+  const pattern = `%${keyword.replace(/[\\%_]/g, "\\$&")}%`;
+  return or(ilike(articles.title, pattern), ilike(articles.summary, pattern));
+}
 
 export async function getCategories() {
   return db
@@ -13,7 +20,7 @@ export async function getCategories() {
     .orderBy(asc(categories.id));
 }
 
-export async function getArticles(categoryId?: number) {
+export async function getArticles(categoryId?: number, keyword?: string) {
   const query = db
     .select({
       id: articles.id,
@@ -26,7 +33,12 @@ export async function getArticles(categoryId?: number) {
     .from(articles)
     .$dynamic();
 
-  if (categoryId !== undefined) query.where(eq(articles.categoryId, categoryId));
+  query.where(
+    and(
+      categoryId !== undefined ? eq(articles.categoryId, categoryId) : undefined,
+      keywordFilter(keyword),
+    ),
+  );
 
   return query
     .orderBy(desc(articles.publishedAt), desc(articles.id))
@@ -55,9 +67,15 @@ export const DASHBOARD_PAGE_SIZE = 9;
 
 // 대시보드용: 발행일 최신순(발행일이 없으면 맨 뒤), 같으면 수집 시각 최신순.
 // 요청한 페이지가 범위를 벗어나면 가장 가까운 유효 페이지로 보정해 돌려준다.
-export async function getLatestArticles(categoryId?: number, page = 1) {
-  const where =
-    categoryId !== undefined ? eq(articles.categoryId, categoryId) : undefined;
+export async function getLatestArticles(
+  categoryId?: number,
+  page = 1,
+  keyword?: string,
+) {
+  const where = and(
+    categoryId !== undefined ? eq(articles.categoryId, categoryId) : undefined,
+    keywordFilter(keyword),
+  );
 
   const [{ total }] = await db
     .select({ total: count() })
