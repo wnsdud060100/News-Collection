@@ -1,3 +1,4 @@
+import DeleteNewsButton from "@/components/delete-news-button";
 import SaveNewsButton from "@/components/save-news-button";
 
 type NewsCardProps = {
@@ -28,12 +29,15 @@ export default function NewsCard({
 }: NewsCardProps) {
   return (
     <article className="flex flex-col gap-3 rounded-2xl border border-blue-100 bg-white p-5 shadow-sm transition hover:border-blue-300 hover:shadow-md dark:border-slate-800 dark:bg-slate-900 dark:hover:border-blue-500/50">
-      <time
-        dateTime={publishedAt?.toISOString()}
-        className="self-end text-xs text-slate-500 dark:text-slate-400"
-      >
-        {publishedAt ? dateFormat.format(publishedAt) : "날짜 정보 없음"}
-      </time>
+      <div className="flex items-center justify-end gap-2">
+        <time
+          dateTime={publishedAt?.toISOString()}
+          className="text-xs text-slate-500 dark:text-slate-400"
+        >
+          {publishedAt ? dateFormat.format(publishedAt) : "날짜 정보 없음"}
+        </time>
+        <DeleteNewsButton articleId={id} />
+      </div>
 
       <h2 className="text-lg leading-snug font-bold text-slate-900 dark:text-slate-50">
         {title}
