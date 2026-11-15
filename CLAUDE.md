@@ -20,6 +20,10 @@ npm run lint    # eslint (flat config, eslint.config.mjs)
 
 No test runner is configured yet.
 
+## Custom slash commands
+
+- `/news-workflow <branch-name>` (`.claude/commands/news-workflow.md`): feature-development workflow. Checks that you're on `main` (warns and asks before switching), creates the branch (if no name is given, asks what you're building and suggests a lowercase-hyphen name), shows the stack/conventions reminder, and on '완료'/'done' lists changed files, proposes a commit message, commits after confirmation, merges into `main`, and summarizes the work. It never pushes or deletes the branch unless asked.
+
 ## Next.js version caveat
 
 `AGENTS.md` warns that this Next.js version has breaking changes versus common training data. Before writing Next.js code, read the relevant guide in `node_modules/next/dist/docs/` and heed deprecation notices (e.g. middleware/auth conventions, route max duration config).
